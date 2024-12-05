@@ -22,7 +22,7 @@ namespace Tournament.Api.Controllers
         private readonly IUnitOfWorkInterface _unitOfWork;
         private readonly IMapper _mapper;
 
-        public TournamentDetailsController(TournamentApiContext context, UnitOfWorkClass unitOfWork, IMapper mapper)
+        public TournamentDetailsController(TournamentApiContext context, IUnitOfWorkInterface unitOfWork, IMapper mapper)
         {
             _context = context;
             _unitOfWork = unitOfWork;
@@ -57,7 +57,7 @@ namespace Tournament.Api.Controllers
                 return NotFound();
             }
 
-            var tournamentsDto = _mapper.Map<IEnumerable<TournamentDto>>(tournamentDetails);
+            var tournamentsDto = _mapper.Map<TournamentDto>(tournamentDetails);
 
             return Ok(tournamentsDto);
         }

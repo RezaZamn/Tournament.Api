@@ -15,16 +15,22 @@ namespace Tournament.Api.Extensions
 
                 await db.Database.MigrateAsync();
 
-                if (await db.Game.AnyAsync()) return;
+                if (await db.Game.AnyAsync() || await db.TournamentDetails.AnyAsync()) return;
 
                 try
                 {
-                    var seedData = SeedData.GenerateGames(5);
-                    db.AddRange(seedData);
+                    var seedGames = SeedData.GenerateGames(5);
+                    db.AddRange(seedGames);
+
+                    var seedTournaments = SeedData.GenerateTournaments(5);
+                    db.AddRange(seedTournaments);
+
+
                     await db.SaveChangesAsync();
                 }
                 catch (Exception ex) 
                 {
+                    Console.WriteLine($"Error while seeding data:{ex.Message}");
                     throw;
 
                 }
