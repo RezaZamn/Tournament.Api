@@ -19,11 +19,19 @@ namespace Tournament.Api.Extensions
 
                 try
                 {
-                    var seedGames = SeedData.GenerateGames(5);
-                    db.AddRange(seedGames);
-
                     var seedTournaments = SeedData.GenerateTournaments(5);
                     db.AddRange(seedTournaments);
+                    db.SaveChanges();
+
+                    var seedGames = SeedData.GenerateGames(5)
+                    .Select(g => {g.TournamentId = seedTournaments.First().Id;//Kopplar alla games till en skapade Tournament 
+                        return g;
+                         }).ToList();
+
+                    db.AddRange(seedGames);
+                    db.SaveChanges();
+
+                   
 
 
                     await db.SaveChangesAsync();

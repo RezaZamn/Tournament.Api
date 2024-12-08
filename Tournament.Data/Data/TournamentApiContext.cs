@@ -17,5 +17,16 @@ namespace Tournament.Data.Data
         public DbSet<TournamentDetails> TournamentDetails { get; set; } = default!;
         public DbSet<Game> Game { get; set; } = default!;
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Game>()
+                .HasOne(g => g.TournamentDetails)
+                .WithMany(t => t.Games)
+                .HasForeignKey(g => g.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
     }
 }

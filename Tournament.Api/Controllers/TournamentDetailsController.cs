@@ -11,6 +11,7 @@ using Tournament.Api.Tournament.Data.Repositories;
 using Tournament.Api.Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Tournament.Api.Controllers
 {
@@ -31,7 +32,7 @@ namespace Tournament.Api.Controllers
 
         // GET: api/TournamentDetails
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails()
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includedGames = false)
         {
             //return await _context.TournamentDetails.ToListAsync();
             var tournaments = await _unitOfWork.Tournaments.GetAllAsync();
@@ -40,6 +41,31 @@ namespace Tournament.Api.Controllers
             {
                 return NotFound();
             }
+
+            if (includedGames)
+            {
+                var tournamentWithGames = _mapper.Map<IEnumerable<TournamentDto>>(tournaments);
+                return Ok(tournamentWithGames);                        
+            }
+
+            else
+            {
+                var tournamentWithoutGames = _mapper.Map<IEnumerable<TournamentDto>>(tournaments)
+                .Select(t => new TournamentDto
+                 {
+                      Id = t.Id,
+                      Title = t.Title,
+                      StartDate = t.StartDate,
+
+                 });
+
+                return Ok(tournamentWithoutGames);
+            }
+
+
+
+
+
 
             var tournamentsDto = _mapper.Map<IEnumerable<TournamentDto>>(tournaments);
             return Ok(tournamentsDto);
@@ -120,9 +146,10 @@ namespace Tournament.Api.Controllers
             var tournamentDetails = await _unitOfWork.Tournaments.GetAsync(id);
             if (tournamentDetails == null)
             {
-                return NotFound();
+                return NotFound("Element finns inte i databasen");
             }
 
+        
             //_context.TournamentDetails.Remove(tournamentDetails);
             //await _context.SaveChangesAsync();
 
@@ -130,6 +157,48 @@ namespace Tournament.Api.Controllers
             await _unitOfWork.CompleteAsync();
 
             return NoContent();
+        }
+
+        [HttpPatch("{tournamentId}")]
+        public async Task<ActionResult<TournamentDto>> PatchTournament(int tournamentId, [FromBody]JsonPatchDocument<TournamentDto> patchDocument)
+        {
+
+            if (patchDocument == null) return BadRequest("No patch document");
+
+            //Hämtar orginal tournamnet från databasen
+            var tournamentToPatch = await _unitOfWork.Tournaments.GetAsync(tournamentId);
+
+            if (tournamentToPatch == null)
+            {
+                return NotFound("Tournamnet med Id {tournamnetId} Hittades inte");
+            }
+
+            //Mappar till en dto för att använda i patch-dokument
+            var tournamentDto = _mapper.Map<TournamentDto>(tournamentToPatch);
+
+            //Applicera patch-document på dton
+            patchDocument.ApplyTo(tournamentDto, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            //Uppdaterar den orginala objektet med nya värden
+            _mapper.Map(tournamentDto, tournamentToPatch);
+
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Kunde inte utföra operationen");
+            }
+
+            return Ok(tournamentDto);
+
+
         }
 
         [HttpPost("{id}")]

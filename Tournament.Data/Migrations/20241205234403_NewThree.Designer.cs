@@ -12,8 +12,8 @@ using Tournament.Data.Data;
 namespace Tournament.Data.Migrations
 {
     [DbContext(typeof(TournamentApiContext))]
-    [Migration("20241205092444_NewDataBase")]
-    partial class NewDataBase
+    [Migration("20241205234403_NewThree")]
+    partial class NewThree
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,7 +43,7 @@ namespace Tournament.Data.Migrations
                     b.Property<int?>("TournamentDetailsId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TournamentId")
+                    b.Property<int?>("TournamentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

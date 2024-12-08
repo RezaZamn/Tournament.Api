@@ -11,6 +11,8 @@ using Tournament.Api.Tournament.Data.Repositories;
 using Tournament.Api.Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
+using Azure;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Tournament.Api.Controllers
 {
@@ -56,19 +58,44 @@ namespace Tournament.Api.Controllers
         {
             //var game = await _context.Games.FindAsync(id);
 
-            var game = await _unitOfWork.Games.GetAsync(id); //Anropar GetAsync via UnitOfWork
+             var game = await _unitOfWork.Games.GetAsync(id); //Anropar GetAsync via UnitOfWork
 
             if (game == null)
             {
-                return NotFound();
+                return NotFound($"No game founded with the title {game}");
             }
 
             var gameDto = _mapper.Map<GameDto>(game);
 
             return Ok(gameDto);
 
+        }
+
+
+        //GET: api/Games/some string
+        [HttpGet("search/{title}")]
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetGamesByTitle(string title)
+        {
+            if(string.IsNullOrEmpty(title))
+            {
+                return BadRequest("The title can not be empty");
+            }
+
+            var allGames = await _unitOfWork.Games.GetAllAsync();
+            var games = allGames.Where(g => g.Title == title).ToList();
+
+
+            if (games.Count == 0)
+            {
+                return NotFound($"No games founded with the title {title}");
+            }
+
+            var gameDto = _mapper.Map<IEnumerable<GameDto>>(games);
+
+            return Ok(gameDto);
 
         }
+
 
         // PUT: api/Games/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -144,6 +171,46 @@ namespace Tournament.Api.Controllers
             await _unitOfWork.CompleteAsync(); //Sparar ändringarna
 
             return NoContent();
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<ActionResult<GameDto>> PatchGame(int id, JsonPatchDocument<GameDto> patchDocument)
+        {
+            if (patchDocument == null) return NotFound("No patch document");
+
+            //Hämtar Orginal spelet från databasen
+            var gameToPatch = await _unitOfWork.Games.GetAsync(id);
+
+            if (gameToPatch == null)
+            {
+                return NotFound("Game med Id {gameId} hittades inte");
+            }
+
+            //Mappar till Dton
+            var gameDto = _mapper.Map<GameDto>(gameToPatch);
+
+            //Applicerar patchDocument på Dton
+            patchDocument.ApplyTo(gameDto, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            //Updaterar Dton men nya värden
+            _mapper.Map(gameDto, gameToPatch);
+
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Kunde inte utföra operationen");
+            }
+
+            return Ok(gameDto);
+
         }
 
 

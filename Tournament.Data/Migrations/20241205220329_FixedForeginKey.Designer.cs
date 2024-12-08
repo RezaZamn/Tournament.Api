@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tournament.Data.Data;
 
@@ -11,9 +12,11 @@ using Tournament.Data.Data;
 namespace Tournament.Data.Migrations
 {
     [DbContext(typeof(TournamentApiContext))]
-    partial class TournamentApiContextModelSnapshot : ModelSnapshot
+    [Migration("20241205220329_FixedForeginKey")]
+    partial class FixedForeginKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,19 +34,21 @@ namespace Tournament.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("Time")
-                        .HasMaxLength(50)
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TournamentId")
+                    b.Property<int>("TournamentDetailsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TournamentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TournamentId");
+                    b.HasIndex("TournamentDetailsId");
 
                     b.ToTable("Game");
                 });
@@ -61,8 +66,7 @@ namespace Tournament.Data.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -73,8 +77,9 @@ namespace Tournament.Data.Migrations
                 {
                     b.HasOne("Tournament.Core.Entities.TournamentDetails", "TournamentDetails")
                         .WithMany("Games")
-                        .HasForeignKey("TournamentId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("TournamentDetailsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("TournamentDetails");
                 });

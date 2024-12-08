@@ -12,8 +12,8 @@ using Tournament.Data.Data;
 namespace Tournament.Data.Migrations
 {
     [DbContext(typeof(TournamentApiContext))]
-    [Migration("20241129095644_Init")]
-    partial class Init
+    [Migration("20241206124626_FixedRelation")]
+    partial class FixedRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -34,21 +34,19 @@ namespace Tournament.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("Time")
+                        .HasMaxLength(50)
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TournamentDetailsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TournamentId")
+                    b.Property<int?>("TournamentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TournamentDetailsId");
+                    b.HasIndex("TournamentId");
 
                     b.ToTable("Game");
                 });
@@ -66,7 +64,8 @@ namespace Tournament.Data.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -75,9 +74,12 @@ namespace Tournament.Data.Migrations
 
             modelBuilder.Entity("Tournament.Core.Entities.Game", b =>
                 {
-                    b.HasOne("Tournament.Core.Entities.TournamentDetails", null)
+                    b.HasOne("Tournament.Core.Entities.TournamentDetails", "TournamentDetails")
                         .WithMany("Games")
-                        .HasForeignKey("TournamentDetailsId");
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("TournamentDetails");
                 });
 
             modelBuilder.Entity("Tournament.Core.Entities.TournamentDetails", b =>
