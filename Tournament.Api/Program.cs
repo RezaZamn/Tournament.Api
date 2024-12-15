@@ -6,6 +6,9 @@ using Tournament.Api.Tournament.Core.Repositories;
 using Tournament.Api.Tournament.Data.Repositories;
 using Tournament.Api.Games.Core.Repositories;
 using Tournament.Api.Games.Data.Repositories;
+using Tournament.Services.Contracts;
+using Tournament.Services;
+
 
 namespace Tournament.Api
 {
@@ -28,6 +31,11 @@ namespace Tournament.Api
             builder.Services.AddScoped<IGameRepository, GameRepository>();
             builder.Services.AddScoped<IUnitOfWorkInterface, UnitOfWorkClass>();
             builder.Services.AddAutoMapper(typeof(TournamentMappings));
+
+            builder.Services.AddScoped<IServiceManager, ServiceManager>();
+            builder.Services.AddScoped<ITournamentService, TournamentService>();
+            builder.Services.AddScoped<IGameService, GameService>();
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
 

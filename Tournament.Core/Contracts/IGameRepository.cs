@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Tournament.Core.Entities;
+﻿using Tournament.Core.Entities;
 
 namespace Tournament.Api.Games.Core.Repositories
 {
@@ -9,7 +8,7 @@ namespace Tournament.Api.Games.Core.Repositories
             Task<IEnumerable<Game>> GetAllAsync();
             Task<Game> GetAsync(int id);
             Task<bool> AnyAsync(int id);
-            void Add(Game game);
+            Task AddAsync(Game game);
             void Update(Game game);
             void Remove(Game game);
         

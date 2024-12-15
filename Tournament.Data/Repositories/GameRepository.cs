@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Tournament.Api.Games.Core.Repositories;
 using Tournament.Core.Entities;
+using Tournament.Core.Contracts;
 using Tournament.Data.Data;
 
 

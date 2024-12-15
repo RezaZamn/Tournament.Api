@@ -4,6 +4,7 @@ using Tournament.Api.Tournament.Core.Repositories;
 using Tournament.Data.Data;
 
 
+
 namespace Tournament.Api.Tournament.Data.Repositories
 {
     public class UnitOfWorkClass : IUnitOfWorkInterface
